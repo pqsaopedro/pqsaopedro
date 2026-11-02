@@ -1,0 +1,21 @@
+
+[
+  {
+    "id": "horario-001",
+    "programaId": "ingles-001",
+    "horario": "08:00",
+    "ativo": true
+  },
+  {
+    "id": "horario-002",
+    "programaId": "espanhol-001",
+    "horario": "09:00",
+    "ativo": true
+  },
+  {
+    "id": "horario-003",
+    "programaId": "alemao-001",
+    "horario": "10:00",
+    "ativo": true
+  }
+]

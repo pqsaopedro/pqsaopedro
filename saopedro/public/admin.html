@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>Administração — Amazon Voices Radio</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: #edf2f7;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 22px 16px;
+      background: #172338;
+      border-bottom: 1px solid #30415b;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      color: #aebed3;
+    }
+
+    main {
+      width: min(100% - 28px, 950px);
+      margin: 24px auto;
+    }
+
+    .cartao {
+      background: #172338;
+      border: 1px solid #30415b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin: 0 0 16px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin: 20px 0 10px;
+    }
+
+    label {
+      display: block;
+      margin: 12px 0 5px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #50627b;
+      border-radius: 7px;
+      background: #0e1726;
+      color: #fff;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid #70b7ff;
+      outline-offset: 1px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 7px;
+      padding: 11px 15px;
+      margin: 12px 5px 0 0;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      background: #3478f6;
+      color: #fff;
+    }
+
+    button:hover {
+      filter: brightness(1.12);
+    }
+
+    button.secundario {
+      background: #40516b;
+    }
+
+    button.perigo {
+      background: #a92d3a;
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .ajuda {
+      font-size: 13px;
+      color: #b7c5d8;
+      margin: 5px 0 12px;
+    }
+
+    .mensagem {
+      margin: 12px 0;
+      padding: 10px;
+      border-radius: 7px;
+      overflow-wrap: anywhere;
+    }
+
+    .oculto {
+      display: none !important;
+    }
+
+    .lista {
+      display: grid;
+      gap: 14px;
+    }
+
+    .faixa {
+      border: 1px solid #40516b;
+      background: #101c2e;
+      border-radius: 9px;
+      padding: 15px;
+    }
+
+    .faixa p {
+      margin: 5px 0;
+      color: #c1cede;
+    }
+
+    .faixa-dia {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 8px 0;
+      padding: 5px 10px;
+      border: 1px solid #4776b8;
+      border-radius: 20px;
+      background: #1b3555;
+      color: #b9dcff;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .faixa-dia.todos {
+      border-color: #65758b;
+      background: #29384b;
+      color: #d3deeb;
+    }
+
+    .faixa-horario {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .aviso-programacao {
+      padding: 12px;
+      border-left: 4px solid #70b7ff;
+      border-radius: 6px;
+      background: #101c2e;
+      color: #c8d8eb;
+      margin: 12px 0;
+    }
+
+    .playlist-item {
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 7px;
+      background: #1b2a40;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .playlist-item-conteudo {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .playlist-controles {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .playlist-item button {
+      flex-shrink: 0;
+      margin: 0;
+    }
+
+    button.botao-mover {
+      background: #40516b;
+      padding: 7px 11px;
+      min-width: 36px;
+      font-size: 18px;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    button.botao-remover {
+      padding: 8px 10px;
+      font-size: 12px;
+      margin: 0;
+    }
+
+    .linha {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .separador {
+      border: 0;
+      border-top: 1px solid #40516b;
+      margin: 20px 0;
+    }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      color: #9cabc0;
+    }
+
+    a {
+      color: #8ec8ff;
+      overflow-wrap: anywhere;
+    }
+
+    .estatisticas-visitas {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .estatistica-visita {
+      padding: 16px;
+      border: 1px solid #40516b;
+      border-radius: 9px;
+      background: #101c2e;
+    }
+
+    .estatistica-visita span {
+      display: block;
+      color: #b7c5d8;
+      font-size: 14px;
+    }
+
+    .estatistica-visita strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 26px;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .historico-visitas {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .historico-visita-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      background: #101c2e;
+    }
+
+    .historico-visita-item strong {
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (max-width: 600px) {
+      .linha {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .cartao {
+        padding: 15px;
+      }
+
+      .playlist-item {
+        align-items: center;
+      }
+
+      .playlist-controles {
+        gap: 4px;
+      }
+
+      button.botao-mover {
+        padding: 7px 9px;
+        min-width: 32px;
+      }
+
+      button.botao-remover {
+        padding: 7px 8px;
+      }
+
+      .estatisticas-visitas {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>Amazon Voices Radio</h1>
+  <p>Painel administrativo</p>
+</header>
+
+<main>
+
+  <section id="painelLogin" class="cartao">
+    <h2>Entrar na administração</h2>
+
+    <form id="formLogin">
+      <label for="senhaAdmin">Senha administrativa</label>
+
+      <input
+        id="senhaAdmin"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button type="submit">Entrar</button>
+    </form>
+
+    <p id="mensagemLogin" class="mensagem" role="status"></p>
+  </section>
+
+  <div id="painelAdmin" class="oculto">
+
+    <section class="cartao" id="cartaoEstatisticasVisitas">
+      <h2>Estatísticas de visitas</h2>
+
+      <p class="ajuda">
+        Acompanhe as visitas registradas na Amazon Voices Radio.
+      </p>
+
+      <div class="estatisticas-visitas">
+
+        <div class="estatistica-visita">
+          <span>Total acumulado</span>
+          <strong id="admin-total-visitas">Carregando...</strong>
+        </div>
+
+        <div class="estatistica-visita">
+          <span>Visitas de hoje</span>
+          <strong id="admin-visitas-hoje">Carregando...</strong>
+        </div>
+
+      </div>
+
+      <h3>Histórico diário</h3>
+
+      <button
+        type="button"
+        id="admin-atualizar-visitas"
+        class="secundario"
+      >
+        Atualizar estatísticas
+      </button>
+
+      <div
+        id="admin-historico-visitas"
+        class="historico-visitas"
+        aria-live="polite"
+      >
+        Carregando histórico...
+      </div>
+
+      <p
+        id="admin-mensagem-visitas"
+        class="mensagem"
+        role="status"
+      ></p>
+    </section>
+
+    <section class="cartao">
+      <h2>Cadastrar programa, áudio e PDF</h2>
+
+      <p class="ajuda">
+        Cada programa pode ter seu próprio material em PDF.
+        O link é opcional.
+      </p>
+
+      <form id="formPrograma">
+
+        <label for="programaNome">
+          Nome da aula ou programa
+        </label>
+
+        <input
+          id="programaNome"
+          maxlength="150"
+          required
+          placeholder="Ex.: Inglês básico — Aula 1"
+        >
+
+        <label for="programaIdioma">Idioma</label>
+
+        <input
+          id="programaIdioma"
+          maxlength="50"
+          required
+          value="Português"
+          placeholder="Ex.: Inglês"
+        >
+
+        <label for="programaDescricao">Descrição</label>
+
+        <textarea
+          id="programaDescricao"
+          maxlength="500"
+          placeholder="Descrição da aula"
+        ></textarea>
+
+        <label for="programaUrl">Endereço do áudio</label>
+
+        <input
+          id="programaUrl"
+          type="url"
+          placeholder="https://..."
+        >
+
+        <label for="programaPdfUrl">
+          Link do material em PDF (opcional)
+        </label>
+
+        <input
+          id="programaPdfUrl"
+          type="url"
+          placeholder="https://drive.google.com/..."
+        >
+
+        <p class="ajuda">
+          No Google Drive, abra as opções de compartilhamento do PDF
+          e selecione “Qualquer pessoa com o link — Leitor”.
+          Depois, copie e cole o link aqui.
+        </p>
+
+        <button type="submit">Salvar programa</button>
+
+      </form>
+
+      <p id="mensagemPrograma" class="mensagem" role="status"></p>
+    </section>
+
+    <section class="cartao">
+
+      <h2>Criar faixa horária com playlist</h2>
+
+      <form id="formFaixa">
+
+        <label for="faixaNome">
+          Nome da faixa horária
+        </label>
+
+        <input
+          id="faixaNome"
+          maxlength="150"
+          required
+          placeholder="Ex.: Inglês da manhã"
+        >
+
+        <label for="faixaDescricao">
+          Descrição da faixa
+        </label>
+
+        <textarea
+          id="faixaDescricao"
+          maxlength="1000"
+          placeholder="Descrição da programação"
+        ></textarea>
+
+        <label for="faixaDia">
+          Quando esta faixa deve tocar?
+        </label>
+
+        <select id="faixaDia">
+          <option value="">Todos os dias</option>
+          <option value="0">Somente domingo</option>
+          <option value="1">Somente segunda-feira</option>
+          <option value="2">Somente terça-feira</option>
+          <option value="3">Somente quarta-feira</option>
+          <option value="4">Somente quinta-feira</option>
+          <option value="5">Somente sexta-feira</option>
+          <option value="6">Somente sábado</option>
+        </select>
+
+        <p class="aviso-programacao">
+          <strong>Como funciona:</strong><br>
+          “Todos os dias” cria uma programação padrão.
+          Se houver uma faixa cadastrada para um dia específico,
+          o player deverá priorizar essa faixa naquele dia.
+        </p>
+
+        <div class="linha">
+
+          <div>
+            <label for="faixaInicio">Horário inicial</label>
+            <input id="faixaInicio" type="time" required>
+          </div>
+
+          <div>
+            <label for="faixaFim">Horário final</label>
+            <input id="faixaFim" type="time" required>
+          </div>
+
+        </div>
+
+        <label for="faixaPrograma">
+          Selecionar programa ou áudio
+        </label>
+
+        <select id="faixaPrograma">
+          <option value="">Carregando programas...</option>
+        </select>
+
+        <button type="button" id="adicionarPrograma">
+          Adicionar à playlist
+        </button>
+
+        <h3>Playlist desta faixa</h3>
+
+        <div id="itensNovaPlaylist" class="lista"></div>
+
+        <button type="submit">Criar faixa horária</button>
+
+      </form>
+
+      <p id="mensagemFaixa" class="mensagem" role="status"></p>
+
+    </section>
+
+    <section class="cartao">
+
+      <h2>Faixas horárias cadastradas</h2>
+
+      <p class="ajuda">
+        Confira quais programações são específicas de cada dia
+        e quais funcionam como programação padrão.
+      </p>
+
+      <button
+        type="button"
+        id="atualizarListas"
+        class="secundario"
+      >
+        Atualizar listas
+      </button>
+
+      <div
+        id="listaFaixas"
+        class="lista"
+        style="margin-top:16px"
+      ></div>
+
+      <p id="mensagemListas" class="mensagem" role="status"></p>
+
+    </section>
+
+    <button type="button" id="botaoSair" class="secundario">
+      Sair do painel
+    </button>
+
+  </div>
+</main>
+
+<footer>
+  Amazon Voices Radio — Many Voices, One Connection.
+</footer>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+
+const API = {
+  programas: "/api/programas",
+  faixas: "/api/faixas-horarias",
+  login: "/api/admin/login",
+  sessao: "/api/admin/sessao",
+  logout: "/api/admin/logout",
+  cadastrarPrograma: "/api/admin/programas",
+  cadastrarFaixa: "/api/admin/faixas-horarias",
+  visitas: "/api/admin/visitas"
+};
+
+let programas = [];
+let faixas = [];
+let novaPlaylist = [];
+let playlistEmEdicao = null;
+
+function escapar(valor) {
+  return String(valor ?? "").replace(/[&<>"']/g, (caractere) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[caractere]);
+}
+
+function mensagem(id, texto, erro = false) {
+  const elemento = $(id);
+  elemento.textContent = texto;
+  elemento.style.color = erro ? "#ffaaaF" : "#a6efbd";
+}
+
+async function requisicao(url, opcoes = {}) {
+  const resposta = await fetch(url, {
+    credentials: "same-origin",
+    ...opcoes,
+    headers: {
+      ...(opcoes.body ? {
+        "Content-Type": "application/json"
+      } : {}),
+      ...(opcoes.headers || {})
+    }
+  });
+
+  const textoResposta = await resposta.text();
+  let dados = {};
+
+  try {
+    dados = textoResposta ? JSON.parse(textoResposta) : {};
+  } catch {
+    throw new Error("O servidor retornou uma resposta inválida.");
+  }
+
+  if (!resposta.ok) {
+    throw new Error(
+      dados.erro || `Erro na solicitação (${resposta.status}).`
+    );
+  }
+
+  return dados;
+}
+
+/* ESTATÍSTICAS DE VISITAS */
+
+async function carregarEstatisticasVisitas() {
+  const totalElemento = $("admin-total-visitas");
+  const hojeElemento = $("admin-visitas-hoje");
+  const historicoElemento = $("admin-historico-visitas");
+  const mensagemElemento = $("admin-mensagem-visitas");
+
+  try {
+    const dados = await requisicao(API.visitas);
+
+    totalElemento.textContent =
+      Number(dados.total || 0).toLocaleString("pt-BR");
+
+    hojeElemento.textContent =
+      Number(dados.hoje || 0).toLocaleString("pt-BR");
+
+    historicoElemento.replaceChildren();
+
+    const historico = Array.isArray(dados.historico)
+      ? dados.historico
+      : [];
+
+    if (!historico.length) {
+      historicoElemento.textContent =
+        "Ainda não há histórico diário disponível.";
+    } else {
+      for (const registro of historico) {
+        const linha = document.createElement("div");
+        linha.className = "historico-visita-item";
+
+        const data = document.createElement("span");
+        const quantidade = document.createElement("strong");
+
+        const dataOriginal =
+          registro.data_local ||
+          registro.data ||
+          registro.dia ||
+          "";
+
+        if (
+          typeof dataOriginal === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(dataOriginal)
+        ) {
+          const [ano, mes, dia] = dataOriginal.split("-");
+          data.textContent = `${dia}/${mes}/${ano}`;
+        } else {
+          data.textContent = String(
+            dataOriginal || "Data não informada"
+          );
+        }
+
+        quantidade.textContent = Number(
+          registro.quantidade ??
+          registro.visitas ??
+          registro.total ??
+          0
+        ).toLocaleString("pt-BR");
+
+        linha.append(data, quantidade);
+        historicoElemento.appendChild(linha);
+      }
+    }
+
+    mensagemElemento.textContent = "";
+
+  } catch (erro) {
+    console.error(
+      "Erro ao carregar estatísticas de visitas:",
+      erro
+    );
+
+    mensagemElemento.textContent =
+      "Não foi possível carregar as estatísticas. Tente atualizar.";
+
+    mensagemElemento.style.color = "#ffaaaF";
+
+    totalElemento.textContent = "—";
+    hojeElemento.textContent = "—";
+
+    historicoElemento.textContent = "Histórico indisponível.";
+  }
+}
+
+/* LOGIN E SESSÃO */
+
+async function carregarSessao() {
+  try {
+    const dados = await requisicao(API.sessao);
+
+    if (dados.autenticado) {
+      await mostrarPainel();
+    } else {
+      mostrarLogin();
+    }
+
+  } catch {
+    mostrarLogin();
+  }
+}
+
+function mostrarLogin() {
+  $("painelLogin").classList.remove("oculto");
+  $("painelAdmin").classList.add("oculto");
+}
+
+async function mostrarPainel() {
+  $("painelLogin").classList.add("oculto");
+  $("painelAdmin").classList.remove("oculto");
+
+  await carregarTudo();
+  await carregarEstatisticasVisitas();
+}
+
+$("formLogin").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  mensagem("mensagemLogin", "Verificando acesso...");
+
+  try {
+    await requisicao(API.login, {
+      method: "POST",
+      body: JSON.stringify({
+        senha: $("senhaAdmin").value
+      })
+    });
+
+    $("senhaAdmin").value = "";
+
+    await mostrarPainel();
+
+    mensagem("mensagemLogin", "");
+
+  } catch (erro) {
+    mensagem("mensagemLogin", erro.message, true);
+  }
+});
+
+$("botaoSair").addEventListener("click", async () => {
+  try {
+    await requisicao(API.logout, {
+      method: "POST"
+    });
+
+  } catch (erro) {
+    console.error(erro);
+  }
+
+  mostrarLogin();
+});
+
+/* CARREGAMENTO GERAL */
+
+async function carregarTudo() {
+  try {
+    await Promise.all([
+      carregarProgramas(),
+      carregarFaixas()
+    ]);
+
+  } catch (erro) {
+    mensagem("mensagemListas", erro.message, true);
+  }
+}
+
+/* PROGRAMAS */
+
+async function carregarProgramas() {
+  programas = await requisicao(API.programas);
+
+  const seletor = $("faixaPrograma");
+  seletor.innerHTML = "";
+
+  if (!programas.length) {
+    seletor.innerHTML =
+      '<option value="">Cadastre um programa primeiro</option>';
+    return;
+  }
+
+  seletor.innerHTML =
+    '<option value="">Selecione um programa</option>';
+
+  for (const programa of programas) {
+    if (programa.ativo === false) continue;
+
+    const opcao = document.createElement("option");
+
+    opcao.value = String(programa.id);
+
+    opcao.textContent =
+      `${programa.nome || programa.titulo}` +
+      (programa.pdfUrl ? " — PDF disponível" : "");
+
+    seletor.appendChild(opcao);
+  }
+}
+
+/* PLAYLIST NOVA */
+
+function renderizarNovaPlaylist() {
+  const recipiente = $("itensNovaPlaylist");
+
+  if (!novaPlaylist.length) {
+    recipiente.innerHTML =
+      '<p class="ajuda">Nenhum áudio adicionado à playlist.</p>';
+    return;
+  }
+
+  recipiente.innerHTML = novaPlaylist.map((item, indice) => `
+    <div class="playlist-item">
+
+      <div class="playlist-item-conteudo">
+        ${indice + 1}. ${escapar(item.titulo)}
+        ${item.pdfUrl ? " 📄 PDF" : ""}
+      </div>
+
+      <div class="playlist-controles">
+
+        <button
+          type="button"
+          class="botao-mover"
+          data-mover-novo="${indice}"
+          data-direcao="-1"
+          aria-label="Mover áudio para cima"
+          title="Mover para cima"
+          ${indice === 0 ? "disabled" : ""}
+        >↑</button>
+
+        <button
+          type="button"
+          class="botao-mover"
+          data-mover-novo="${indice}"
+          data-direcao="1"
+          aria-label="Mover áudio para baixo"
+          title="Mover para baixo"
+          ${indice === novaPlaylist.length - 1 ? "disabled" : ""}
+        >↓</button>
+
+        <button
+          type="button"
+          class="perigo botao-remover"
+          data-remover-novo="${indice}"
+        >Remover</button>
+
+      </div>
+    </div>
+  `).join("");
+}
+
+$("adicionarPrograma").addEventListener("click", () => {
+  const id = $("faixaPrograma").value;
+
+  if (!id) {
+    mensagem(
+      "mensagemFaixa",
+      "Selecione um programa antes de adicionar.",
+      true
+    );
+    return;
+  }
+
+  const programa = programas.find(
+    (p) => String(p.id) === String(id)
+  );
+
+  if (!programa) {
+    mensagem("mensagemFaixa", "Programa não encontrado.", true);
+    return;
+  }
+
+  novaPlaylist.push({
+    programaId: programa.id,
+    titulo: programa.nome || programa.titulo,
+    pdfUrl: programa.pdfUrl || programa.pdf_url || ""
+  });
+
+  renderizarNovaPlaylist();
+
+  mensagem("mensagemFaixa", "");
+});
+
+/* MOVER E REMOVER NA PLAYLIST NOVA */
+
+$("itensNovaPlaylist").addEventListener("click", (evento) => {
+  const mover = evento.target.closest("[data-mover-novo]");
+
+  if (mover) {
+    const indice = Number(mover.dataset.moverNovo);
+    const direcao = Number(mover.dataset.direcao);
+    const destino = indice + direcao;
+
+    if (
+      indice < 0 ||
+      indice >= novaPlaylist.length ||
+      destino < 0 ||
+      destino >= novaPlaylist.length
+    ) {
+      return;
+    }
+
+    [
+      novaPlaylist[indice],
+      novaPlaylist[destino]
+    ] = [
+      novaPlaylist[destino],
+      novaPlaylist[indice]
+    ];
+
+    renderizarNovaPlaylist();
+    return;
+  }
+
+  const remover = evento.target.closest("[data-remover-novo]");
+
+  if (!remover) return;
+
+  novaPlaylist.splice(
+    Number(remover.dataset.removerNovo),
+    1
+  );
+
+  renderizarNovaPlaylist();
+});
+
+/* CADASTRAR PROGRAMA */
+
+$("formPrograma").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  mensagem("mensagemPrograma", "Salvando programa...");
+
+  const dados = {
+    nome: $("programaNome").value.trim(),
+    idioma: $("programaIdioma").value.trim(),
+    descricao: $("programaDescricao").value.trim(),
+    url: $("programaUrl").value.trim(),
+    pdfUrl: $("programaPdfUrl").value.trim()
+  };
+
+  try {
+    await requisicao(API.cadastrarPrograma, {
+      method: "POST",
+      body: JSON.stringify(dados)
+    });
+
+    $("formPrograma").reset();
+    $("programaIdioma").value = "Português";
+
+    mensagem(
+      "mensagemPrograma",
+      "Programa cadastrado com sucesso."
+    );
+
+    await carregarProgramas();
+
+  } catch (erro) {
+    mensagem("mensagemPrograma", erro.message, true);
+  }
+});
+
+/* CRIAR FAIXA HORÁRIA */
+
+$("formFaixa").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  if (!novaPlaylist.length) {
+    mensagem(
+      "mensagemFaixa",
+      "Adicione pelo menos um programa à playlist.",
+      true
+    );
+    return;
+  }
+
+  mensagem("mensagemFaixa", "Criando faixa horária...");
+
+  const diaValor = $("faixaDia").value;
+
+  const dados = {
+    nome: $("faixaNome").value.trim(),
+    descricao: $("faixaDescricao").value.trim(),
+
+    // null = todos os dias
+    // 0 = domingo
+    // 1 = segunda-feira
+    // 2 = terça-feira
+    // 3 = quarta-feira
+    // 4 = quinta-feira
+    // 5 = sexta-feira
+    // 6 = sábado
+
+    diaSemana: diaValor === "" ? null : Number(diaValor),
+
+    inicio: $("faixaInicio").value,
+    fim: $("faixaFim").value,
+
+    itens: novaPlaylist.map((item, indice) => ({
+      programaId: item.programaId,
+      ordem: indice + 1
+    }))
+  };
+
+  try {
+    await requisicao(API.cadastrarFaixa, {
+      method: "POST",
+      body: JSON.stringify(dados)
+    });
+
+    $("formFaixa").reset();
+
+    novaPlaylist = [];
+
+    renderizarNovaPlaylist();
+
+    mensagem(
+      "mensagemFaixa",
+      "Faixa horária criada com sucesso."
+    );
+
+    await carregarFaixas();
+
+  } catch (erro) {
+    mensagem("mensagemFaixa", erro.message, true);
+  }
+});
+
+/* NOMES DOS DIAS */
+
+function nomeDia(dia) {
+  if (dia === null || dia === undefined || dia === "") {
+    return "Todos os dias";
+  }
+
+  return [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"
+  ][Number(dia)] || "Dia não identificado";
+}
+
+/* CARREGAR FAIXAS */
+
+async function carregarFaixas() {
+  faixas = await requisicao(API.faixas);
+  renderizarFaixas();
+}
+
+/* EXIBIR FAIXAS ORGANIZADAS POR DIA */
+
+function renderizarFaixas() {
+  const recipiente = $("listaFaixas");
+
+  if (!faixas.length) {
+    recipiente.innerHTML =
+      '<p class="ajuda">Nenhuma faixa horária cadastrada.</p>';
+    return;
+  }
+
+  const faixasOrdenadas = [...faixas].sort((a, b) => {
+    const diaA =
+      a.diaSemana === null ||
+      a.diaSemana === undefined ||
+      a.diaSemana === ""
+        ? -1
+        : Number(a.diaSemana);
+
+    const diaB =
+      b.diaSemana === null ||
+      b.diaSemana === undefined ||
+      b.diaSemana === ""
+        ? -1
+        : Number(b.diaSemana);
+
+    if (diaA !== diaB) {
+      return diaA - diaB;
+    }
+
+    return String(a.inicio || "").localeCompare(
+      String(b.inicio || "")
+    );
+  });
+
+  recipiente.innerHTML = faixasOrdenadas.map((faixa) => {
+    const playlist = Array.isArray(faixa.playlist)
+      ? faixa.playlist
+      : [];
+
+    const diaEspecifico =
+      faixa.diaSemana !== null &&
+      faixa.diaSemana !== undefined &&
+      faixa.diaSemana !== "";
+
+    const classeDia = diaEspecifico
+      ? "faixa-dia"
+      : "faixa-dia todos";
+
+    const textoDia = diaEspecifico
+      ? `📅 ${nomeDia(faixa.diaSemana)}`
+      : "🌎 Todos os dias";
+
+    const lista = playlist.map((item, indice) => `
+      <div class="playlist-item">
+        <div class="playlist-item-conteudo">
+          ${indice + 1}. ${escapar(item.titulo)}
+          ${item.pdfUrl || item.pdf_url ? " 📄 PDF" : ""}
+        </div>
+      </div>
+    `).join("");
+
+    const editando =
+      String(playlistEmEdicao) === String(faixa.id);
+
+    return `
+      <article class="faixa">
+
+        <h3>${escapar(faixa.nome)}</h3>
+
+        <div class="${classeDia}">
+          ${escapar(textoDia)}
+        </div>
+
+        <p>${escapar(faixa.descricao || "")}</p>
+
+        <p>
+          <strong>Horário:</strong>
+          <span class="faixa-horario">
+            ${escapar(faixa.inicio)}–${escapar(faixa.fim)}
+          </span>
+        </p>
+
+        <p>
+          <strong>Áudios na playlist:</strong>
+          ${playlist.length}
+        </p>
+
+        ${lista || '<p class="ajuda">Playlist vazia.</p>'}
+
+        <button
+          type="button"
+          data-editar="${escapar(faixa.id)}"
+        >
+          ${editando ? "Fechar editor" : "Editar playlist"}
+        </button>
+
+        <button
+          type="button"
+          class="perigo"
+          data-excluir="${escapar(faixa.id)}"
+        >
+          Excluir faixa horária
+        </button>
+
+        <div
+          class="${editando ? "" : "oculto"}"
+          id="editor-${escapar(faixa.id)}"
+        >
+
+          <hr class="separador">
+
+          <h3>Editar playlist</h3>
+
+          <p class="ajuda">
+            Use as setas para mudar a ordem dos áudios.
+            Remova ou adicione programas e depois clique em
+            Salvar playlist para gravar as alterações.
+          </p>
+
+          <div data-itens-editor="${escapar(faixa.id)}">
+
+            ${playlist.map((item, indice) => `
+              <div class="playlist-item">
+
+                <div class="playlist-item-conteudo">
+                  ${indice + 1}. ${escapar(item.titulo)}
+                  ${item.pdfUrl || item.pdf_url ? " 📄 PDF" : ""}
+                </div>
+
+                <div class="playlist-controles">
+
+                  <button
+                    type="button"
+                    class="botao-mover"
+                    data-mover-editor="${escapar(faixa.id)}"
+                    data-indice="${indice}"
+                    data-direcao="-1"
+                    aria-label="Mover áudio para cima"
+                    title="Mover para cima"
+                    ${indice === 0 ? "disabled" : ""}
+                  >↑</button>
+
+                  <button
+                    type="button"
+                    class="botao-mover"
+                    data-mover-editor="${escapar(faixa.id)}"
+                    data-indice="${indice}"
+                    data-direcao="1"
+                    aria-label="Mover áudio para baixo"
+                    title="Mover para baixo"
+                    ${indice === playlist.length - 1 ? "disabled" : ""}
+                  >↓</button>
+
+                  <button
+                    type="button"
+                    class="perigo botao-remover"
+                    data-remover-editor="${escapar(faixa.id)}"
+                    data-indice="${indice}"
+                  >Remover</button>
+
+                </div>
+              </div>
+            `).join("")}
+
+          </div>
+
+          <label for="adicionar-${escapar(faixa.id)}">
+            Adicionar programa
+          </label>
+
+          <select id="adicionar-${escapar(faixa.id)}">
+
+            <option value="">Selecione um programa</option>
+
+            ${programas
+              .filter((p) => p.ativo !== false)
+              .map((p) => `
+                <option value="${escapar(p.id)}">
+                  ${escapar(p.nome || p.titulo)}
+                </option>
+              `).join("")}
+
+          </select>
+
+          <button
+            type="button"
+            data-adicionar-editor="${escapar(faixa.id)}"
+          >
+            Adicionar
+          </button>
+
+          <button
+            type="button"
+            data-salvar-editor="${escapar(faixa.id)}"
+          >
+            Salvar playlist
+          </button>
+
+          <p
+            class="mensagem"
+            role="status"
+            id="status-editor-${escapar(faixa.id)}"
+          ></p>
+
+        </div>
+
+      </article>
+    `;
+  }).join("");
+}
+
+/* AÇÕES DAS PLAYLISTS E FAIXAS */
+
+$("listaFaixas").addEventListener("click", async (evento) => {
+
+  const mover = evento.target.closest("[data-mover-editor]");
+  const editar = evento.target.closest("[data-editar]");
+  const excluir = evento.target.closest("[data-excluir]");
+  const remover = evento.target.closest("[data-remover-editor]");
+  const adicionar = evento.target.closest("[data-adicionar-editor]");
+  const salvar = evento.target.closest("[data-salvar-editor]");
+
+  /* MOVER ÁUDIO */
+
+  if (mover) {
+    const id = String(mover.dataset.moverEditor);
+
+    const faixa = faixas.find(
+      (f) => String(f.id) === id
+    );
+
+    if (!faixa) return;
+
+    const indice = Number(mover.dataset.indice);
+    const direcao = Number(mover.dataset.direcao);
+    const destino = indice + direcao;
+
+    const itens = Array.isArray(faixa.playlist)
+      ? [...faixa.playlist]
+      : [];
+
+    if (
+      indice < 0 ||
+      indice >= itens.length ||
+      destino < 0 ||
+      destino >= itens.length
+    ) {
+      return;
+    }
+
+    [
+      itens[indice],
+      itens[destino]
+    ] = [
+      itens[destino],
+      itens[indice]
+    ];
+
+    faixa.playlist = itens;
+
+    renderizarFaixas();
+
+    return;
+  }
+
+  /* ABRIR OU FECHAR EDITOR */
+
+  if (editar) {
+    const id = String(editar.dataset.editar);
+
+    playlistEmEdicao =
+      String(playlistEmEdicao) === id
+        ? null
+        : id;
+
+    renderizarFaixas();
+
+    return;
+  }
+
+  /* EXCLUIR FAIXA */
+
+  if (excluir) {
+    const id = excluir.dataset.excluir;
+
+    if (!confirm(
+      "Tem certeza de que deseja excluir esta faixa horária e todos os itens de sua playlist?"
+    )) {
+      return;
+    }
+
+    try {
+      await requisicao(
+        `${API.cadastrarFaixa}/${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      );
+
+      playlistEmEdicao = null;
+
+      mensagem(
+        "mensagemListas",
+        "Faixa horária excluída."
+      );
+
+      await carregarFaixas();
+
+    } catch (erro) {
+      mensagem("mensagemListas", erro.message, true);
+    }
+
+    return;
+  }
+
+  /* REMOVER ÁUDIO */
+
+  if (remover) {
+    const faixa = faixas.find(
+      (f) => String(f.id) === String(remover.dataset.removerEditor)
+    );
+
+    if (!faixa) return;
+
+    const indice = Number(remover.dataset.indice);
+
+    const itens = Array.isArray(faixa.playlist)
+      ? [...faixa.playlist]
+      : [];
+
+    itens.splice(indice, 1);
+
+    faixa.playlist = itens;
+
+    renderizarFaixas();
+
+    return;
+  }
+
+  /* ADICIONAR ÁUDIO */
+
+  if (adicionar) {
+    const id = String(adicionar.dataset.adicionarEditor);
+
+    const faixa = faixas.find(
+      (f) => String(f.id) === id
+    );
+
+    const seletor = $(`adicionar-${id}`);
+
+    if (!faixa || !seletor?.value) return;
+
+    const programa = programas.find(
+      (p) => String(p.id) === String(seletor.value)
+    );
+
+    if (!programa) return;
+
+    if (!Array.isArray(faixa.playlist)) {
+      faixa.playlist = [];
+    }
+
+    faixa.playlist.push({
+      programaId: programa.id,
+      titulo: programa.nome || programa.titulo,
+      idioma: programa.idioma,
+      descricao: programa.descricao,
+      audioUrl: programa.audioUrl || programa.url_audio || "",
+      pdfUrl: programa.pdfUrl || programa.pdf_url || "",
+      ordem: faixa.playlist.length + 1
+    });
+
+    renderizarFaixas();
+
+    return;
+  }
+
+  /* SALVAR PLAYLIST */
+
+  if (salvar) {
+    const id = String(salvar.dataset.salvarEditor);
+
+    const faixa = faixas.find(
+      (f) => String(f.id) === id
+    );
+
+    if (!faixa) return;
+
+    const itens = (faixa.playlist || []).map((item, indice) => ({
+      programaId: item.programaId,
+      ordem: indice + 1
+    }));
+
+    if (
+      !itens.length &&
+      !confirm(
+        "Salvar a playlist vazia e remover todos os áudios?"
+      )
+    ) {
+      return;
+    }
+
+    const botaoOriginal = salvar.textContent;
+
+    salvar.disabled = true;
+    salvar.textContent = "Salvando...";
+
+    try {
+      await requisicao(
+        `${API.cadastrarFaixa}/${encodeURIComponent(id)}/playlist`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ itens })
+        }
+      );
+
+      mensagem(
+        "mensagemListas",
+        itens.length
+          ? "Playlist atualizada com sucesso."
+          : "Todos os áudios foram removidos da playlist."
+      );
+
+      await carregarFaixas();
+
+      playlistEmEdicao = id;
+
+      renderizarFaixas();
+
+    } catch (erro) {
+      mensagem(
+        `status-editor-${id}`,
+        erro.message,
+        true
+      );
+
+    } finally {
+      const botaoAtual = document.querySelector(
+        `[data-salvar-editor="${CSS.escape(id)}"]`
+      );
+
+      if (botaoAtual) {
+        botaoAtual.disabled = false;
+        botaoAtual.textContent = botaoOriginal;
+      }
+    }
+  }
+
+});
+
+/* ATUALIZAR LISTAS */
+
+$("atualizarListas").addEventListener("click", async () => {
+  try {
+    await carregarTudo();
+
+    mensagem(
+      "mensagemListas",
+      "Listas atualizadas."
+    );
+
+  } catch (erro) {
+    mensagem("mensagemListas", erro.message, true);
+  }
+});
+
+/* ATUALIZAR ESTATÍSTICAS */
+
+$("admin-atualizar-visitas").addEventListener("click", () => {
+  carregarEstatisticasVisitas();
+});
+
+/* INICIALIZAÇÃO */
+
+renderizarNovaPlaylist();
+carregarSessao();
+
+</script>
+
+</body>
+</html>
