@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101827">
+
+    <meta
+        name="description"
+        content="Amazon Voices Radio — Many Voices, One Connection. Música, idiomas e aprendizado."
+    >
+
+    <title>Amazon Voices Radio</title>
+
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+
+<body>
+    <header class="cabecalho">
+        <a href="/" class="marca" aria-label="Amazon Voices Radio - início">
+            <span class="marca-icone" aria-hidden="true">♫</span>
+
+            <span class="marca-texto">
+                <strong>AMAZON VOICES</strong>
+                <small>RADIO · MANY VOICES, ONE CONNECTION</small>
+            </span>
+        </a>
+
+        <span class="status-radio">
+            <span class="status-ponto"></span>
+            RÁDIO ONLINE
+        </span>
+    </header>
+
+    <main class="conteudo">
+        <section class="apresentacao">
+            <p class="apresentacao-etiqueta">MÚSICA · IDIOMAS · CONEXÃO</p>
+
+            <h1>Many Voices, One Connection.</h1>
+
+            <p>
+                Uma rádio para conectar pessoas por meio da música,
+                da fé e do aprendizado de novos idiomas.
+            </p>
+        </section>
+
+        <section class="cartao-radio" aria-label="Player da rádio">
+            <div class="radio-identificacao">
+                <span class="radio-icone" aria-hidden="true">♫</span>
+
+                <div>
+                    <p class="radio-etiqueta">VOCÊ ESTÁ OUVINDO</p>
+
+                    <h2 id="programa-atual">
+                        Amazon Voices Radio
+                    </h2>
+                </div>
+            </div>
+
+            <p id="descricao-programa">
+                Muitas vozes, uma conexão.
+            </p>
+
+            <div class="horario-atual">
+                <span id="horario-inicio">--:--</span>
+                <span aria-hidden="true">—</span>
+                <span id="horario-fim">--:--</span>
+            </div>
+
+            <audio id="audio-radio" preload="none">
+                Seu navegador não oferece suporte ao player de áudio.
+            </audio>
+
+            <button
+                id="botao-play"
+                type="button"
+                aria-label="Ouvir rádio"
+            >
+                <span id="icone-play" aria-hidden="true">▶</span>
+                <span id="texto-play">OUVIR AGORA</span>
+            </button>
+
+            <p
+                id="status-audio"
+                class="status-audio"
+                role="status"
+                aria-live="polite"
+            >
+                Preparando a programação...
+            </p>
+        </section>
+
+        <!-- Contador público de visitas -->
+        <section class="contador-visitas" aria-live="polite">
+            <span>Visitas à rádio</span>
+            <strong id="total-visitas">Carregando...</strong>
+        </section>
+
+        <section class="programacao" aria-labelledby="titulo-programacao">
+            <div class="programacao-cabecalho">
+                <div>
+                    <p class="secao-etiqueta">ACOMPANHE</p>
+
+                    <h2 id="titulo-programacao">
+                        Programação
+                    </h2>
+
+                    <p>
+                        Confira os horários, os programas e os materiais
+                        de apoio disponíveis.
+                    </p>
+                </div>
+
+                <span id="data-programacao">
+                    Programação de hoje
+                </span>
+            </div>
+
+            <div id="lista-programacao" class="lista-programacao">
+                <p class="programacao-vazia">
+                    Carregando a programação...
+                </p>
+            </div>
+        </section>
+
+        <section class="aviso-continuidade">
+            <h2>Continue conectado</h2>
+
+            <p>
+                Acompanhe nossa programação e aproveite os materiais
+                de apoio disponibilizados em cada aula.
+            </p>
+        </section>
+    </main>
+
+    <footer class="rodape">
+        <div class="rodape-marca">
+            <strong>AMAZON VOICES RADIO</strong>
+            <p>Many Voices, One Connection.</p>
+        </div>
+
+        <div class="rodape-creditos">
+            <p>
+                Desenvolvedor:
+                <strong>Edimar Matos</strong>
+            </p>
+
+            <p>
+                Contato, sugestões e melhorias:
+                <a href="mailto:amvoices.matos@gmail.com">
+                    amvoices.matos@gmail.com
+                </a>
+            </p>
+        </div>
+
+        <p class="rodape-copyright">
+            © <span id="ano-atual"></span> Amazon Voices Radio.
+            Todos os direitos reservados.
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,24 @@
+
+[
+  {
+    "id": "ingles-001",
+    "titulo": "English for Everyday Life",
+    "idioma": "Inglês",
+    "descricao": "Diálogos cotidianos com tradução e prática de repetição.",
+    "audioUrl": ""
+  },
+  {
+    "id": "espanhol-001",
+    "titulo": "Español para Todos",
+    "idioma": "Espanhol",
+    "descricao": "Conversação básica com tradução e prática.",
+    "audioUrl": ""
+  },
+  {
+    "id": "alemao-001",
+    "titulo": "Deutsch für Anfänger",
+    "idioma": "Alemão",
+    "descricao": "Introdução ao alemão com frases do cotidiano.",
+    "audioUrl": ""
+  }
+]
