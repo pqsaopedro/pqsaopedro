@@ -10,9 +10,7 @@ const PORT = process.env.PORT || 10000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 
 if (!process.env.SESSION_SECRET || !process.env.ADMIN_PASSWORD) {
-  console.error(
-    "Configure SESSION_SECRET e ADMIN_PASSWORD nas variáveis de ambiente."
-  );
+  console.error("Configure SESSION_SECRET e ADMIN_PASSWORD nas variáveis de ambiente.");
   process.exit(1);
 }
 
@@ -74,7 +72,7 @@ function horarioValido(valor) {
   );
 }
 
-// Obtém a data atual usando o fuso horário de Manaus.
+// Data atual no fuso horário de Manaus.
 function dataLocalManaus() {
   const partes = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Manaus",
@@ -112,7 +110,6 @@ function urlAudioValida(valor) {
   }
 }
 
-// Valida o link do material em PDF.
 function urlPdfValida(valor) {
   if (valor === undefined || valor === null || valor === "") {
     return true;
@@ -129,20 +126,110 @@ function urlPdfValida(valor) {
   }
 }
 
-// Prepara o banco sem apagar os registros existentes.
+// ============================================================
+// PREPARAÇÃO DO BANCO NEON
+// ============================================================
+
 async function prepararBanco() {
+
+  // 1. Programas, áudios e PDFs
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS programas (
+      id BIGSERIAL PRIMARY KEY,
+      codigo_externo TEXT,
+      nome VARCHAR(150) NOT NULL,
+      idioma VARCHAR(50) NOT NULL DEFAULT 'Português',
+      descricao TEXT NOT NULL DEFAULT '',
+      url_audio TEXT NOT NULL DEFAULT '',
+      pdf_url TEXT NOT NULL DEFAULT '',
+      ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  // Complementa a tabela caso ela já existisse.
   await pool.query(`
     ALTER TABLE programas
       ADD COLUMN IF NOT EXISTS codigo_externo TEXT,
-      ADD COLUMN IF NOT EXISTS idioma VARCHAR(50),
-      ADD COLUMN IF NOT EXISTS pdf_url TEXT
+      ADD COLUMN IF NOT EXISTS idioma VARCHAR(50) NOT NULL DEFAULT 'Português',
+      ADD COLUMN IF NOT EXISTS descricao TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS url_audio TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS pdf_url TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
   `);
 
+  // 2. Programação antiga
   await pool.query(`
-    ALTER TABLE programacao
-      ADD COLUMN IF NOT EXISTS codigo_externo TEXT
+    CREATE TABLE IF NOT EXISTS programacao (
+      id BIGSERIAL PRIMARY KEY,
+      codigo_externo TEXT,
+      programa_id BIGINT NOT NULL
+        REFERENCES programas(id) ON DELETE RESTRICT,
+      dia_semana SMALLINT NULL,
+      horario_inicio TIME NOT NULL,
+      horario_fim TIME NOT NULL,
+      descricao TEXT NOT NULL DEFAULT '',
+      ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      CONSTRAINT chk_programacao_dia
+        CHECK (dia_semana IS NULL OR dia_semana BETWEEN 0 AND 6),
+
+      CONSTRAINT chk_programacao_horarios
+        CHECK (horario_inicio <> horario_fim)
+    )
   `);
 
+  // 3. Faixas horárias
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS faixas_horarias (
+      id BIGSERIAL PRIMARY KEY,
+      nome VARCHAR(150) NOT NULL,
+      descricao TEXT NOT NULL DEFAULT '',
+      dia_semana SMALLINT NULL,
+      horario_inicio TIME NOT NULL,
+      horario_fim TIME NOT NULL,
+      ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      CONSTRAINT chk_faixa_dia
+        CHECK (dia_semana IS NULL OR dia_semana BETWEEN 0 AND 6),
+
+      CONSTRAINT chk_faixa_horarios
+        CHECK (horario_inicio <> horario_fim)
+    )
+  `);
+
+  // 4. Itens das playlists
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS playlist_itens (
+      id BIGSERIAL PRIMARY KEY,
+      faixa_id BIGINT NOT NULL
+        REFERENCES faixas_horarias(id) ON DELETE CASCADE,
+      programa_id BIGINT NOT NULL
+        REFERENCES programas(id) ON DELETE RESTRICT,
+      ordem INTEGER NOT NULL,
+      ativo BOOLEAN NOT NULL DEFAULT TRUE,
+      criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+      CONSTRAINT chk_playlist_ordem
+        CHECK (ordem >= 1),
+
+      CONSTRAINT uq_playlist_ordem
+        UNIQUE (faixa_id, ordem)
+    )
+  `);
+
+  // 5. Contador diário de visitas
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS visitas_radio_diarias (
+      data_local DATE PRIMARY KEY,
+      quantidade BIGINT NOT NULL DEFAULT 0
+    )
+  `);
+
+  // 6. Índices
   await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_programas_codigo_externo
       ON programas (codigo_externo)
@@ -165,18 +252,23 @@ async function prepararBanco() {
       ON programacao (programa_id)
   `);
 
-  // Contador de visitas: uma linha por dia, sem apagar o histórico.
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS visitas_radio_diarias (
-      data_local DATE PRIMARY KEY,
-      quantidade BIGINT NOT NULL DEFAULT 0
-    )
+    CREATE INDEX IF NOT EXISTS idx_faixas_ativas_horario
+      ON faixas_horarias (ativo, dia_semana, horario_inicio)
   `);
 
-  console.log("Estrutura do Neon conferida.");
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_playlist_faixa
+      ON playlist_itens (faixa_id, ordem)
+  `);
+
+  console.log("Banco da Rádio Parque São Pedro preparado com sucesso.");
 }
 
-// Páginas do site.
+// ============================================================
+// PÁGINAS DO SITE
+// ============================================================
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "index.html"));
 });
@@ -196,17 +288,23 @@ app.use(
   })
 );
 
-// Estado do servidor.
+// ============================================================
+// ESTADO DO SERVIDOR
+// ============================================================
+
 app.get("/api/health", (req, res) => {
   res.json({
     status: "online",
-    radio: "Amazon Voices Radio",
-    slogan: "Many Voices, One Connection",
+    radio: "Parque São Pedro",
+    slogan: "Rádio Parque São Pedro",
     horarioServidor: new Date().toISOString()
   });
 });
 
-// Teste da conexão com o Neon.
+// ============================================================
+// TESTE DO NEON
+// ============================================================
+
 app.get("/api/teste-neon", async (req, res, next) => {
   try {
     const resultado = await pool.query(
@@ -225,12 +323,9 @@ app.get("/api/teste-neon", async (req, res, next) => {
 });
 
 // ============================================================
-// CONTADOR DE VISITAS DA RÁDIO
+// CONTADOR DE VISITAS
 // ============================================================
 
-// Registra uma visita quando a página pública solicita a rota.
-// A página deve chamar esta rota uma única vez por carregamento,
-// e não durante a atualização periódica da programação.
 app.post("/api/visitas", async (req, res, next) => {
   try {
     const data = dataLocalManaus();
@@ -267,7 +362,7 @@ app.post("/api/visitas", async (req, res, next) => {
   }
 });
 
-// Métricas protegidas: somente o administrador autenticado pode consultar.
+// Visitas administrativas
 app.get("/api/admin/visitas", exigirAdmin, async (req, res, next) => {
   try {
     const data = dataLocalManaus();
@@ -306,7 +401,10 @@ app.get("/api/admin/visitas", exigirAdmin, async (req, res, next) => {
   }
 });
 
-// Lista de programas, áudios e materiais em PDF.
+// ============================================================
+// LISTA DE PROGRAMAS
+// ============================================================
+
 app.get("/api/programas", async (req, res, next) => {
   try {
     const resultado = await pool.query(`
@@ -345,7 +443,10 @@ app.get("/api/programas", async (req, res, next) => {
   }
 });
 
-// Programação antiga: permanece separada das novas playlists.
+// ============================================================
+// PROGRAMAÇÃO ANTIGA
+// ============================================================
+
 app.get("/api/programacao", async (req, res, next) => {
   try {
     const resultado = await pool.query(`
@@ -385,7 +486,10 @@ app.get("/api/programacao", async (req, res, next) => {
   }
 });
 
-// Login administrativo.
+// ============================================================
+// LOGIN ADMINISTRATIVO
+// ============================================================
+
 app.post("/api/admin/login", (req, res, next) => {
   const { senha } = req.body || {};
 
@@ -415,14 +519,12 @@ app.post("/api/admin/login", (req, res, next) => {
   });
 });
 
-// Verifica a sessão administrativa.
 app.get("/api/admin/sessao", (req, res) => {
   res.json({
     autenticado: req.session?.admin === true
   });
 });
 
-// Logout.
 app.post("/api/admin/logout", exigirAdmin, (req, res, next) => {
   req.session.destroy((err) => {
     if (err) return next(err);
@@ -432,7 +534,10 @@ app.post("/api/admin/logout", exigirAdmin, (req, res, next) => {
   });
 });
 
-// Cadastro de programas, áudios e PDFs.
+// ============================================================
+// CADASTRO DE PROGRAMAS, ÁUDIOS E PDFs
+// ============================================================
+
 app.post("/api/admin/programas", exigirAdmin, async (req, res, next) => {
   try {
     const dados = req.body || {};
@@ -466,8 +571,7 @@ app.post("/api/admin/programas", exigirAdmin, async (req, res, next) => {
       !urlPdfValida(pdf)
     ) {
       return res.status(400).json({
-        erro:
-          "Confira o nome, idioma, descrição, endereço do áudio e link do PDF."
+        erro: "Confira o nome, idioma, descrição, endereço do áudio e link do PDF."
       });
     }
 
@@ -533,8 +637,10 @@ app.post("/api/admin/programas", exigirAdmin, async (req, res, next) => {
   }
 });
 
-// Salva a programação antiga.
-// Não modifica as novas faixas horárias.
+// ============================================================
+// SALVAR PROGRAMAÇÃO ANTIGA
+// ============================================================
+
 app.put(
   "/api/admin/programacao",
   exigirAdmin,
@@ -656,7 +762,7 @@ app.put(
         });
       }
 
-      // Exclusão restrita à programação antiga.
+      // Substitui somente a programação antiga.
       await client.query("DELETE FROM programacao");
 
       for (const h of resolvidos) {
@@ -708,10 +814,9 @@ app.put(
 );
 
 // ============================================================
-// FAIXAS HORÁRIAS COM PLAYLISTS ORDENADAS
+// FAIXAS HORÁRIAS E PLAYLISTS
 // ============================================================
 
-// Lista as faixas horárias, seus áudios e seus PDFs.
 app.get("/api/faixas-horarias", async (req, res, next) => {
   try {
     const resultado = await pool.query(`
@@ -763,7 +868,7 @@ app.get("/api/faixas-horarias", async (req, res, next) => {
   }
 });
 
-// Cria uma faixa horária e sua playlist inicial.
+// Criar faixa e playlist inicial.
 app.post(
   "/api/admin/faixas-horarias",
   exigirAdmin,
@@ -792,8 +897,7 @@ app.post(
       itens.length > 100
     ) {
       return res.status(400).json({
-        erro:
-          "Confira o nome, os horários, o dia da semana e os áudios da playlist."
+        erro: "Confira o nome, os horários, o dia da semana e os áudios da playlist."
       });
     }
 
@@ -895,8 +999,7 @@ app.post(
   }
 );
 
-// Atualiza a playlist.
-// Uma lista vazia é válida: remove todos os áudios.
+// Atualizar playlist. Lista vazia remove todos os áudios.
 app.put(
   "/api/admin/faixas-horarias/:id/playlist",
   exigirAdmin,
@@ -1008,7 +1111,7 @@ app.put(
   }
 );
 
-// Exclui uma faixa horária inteira e sua playlist.
+// Excluir faixa horária e sua playlist.
 app.delete(
   "/api/admin/faixas-horarias/:id",
   exigirAdmin,
@@ -1065,7 +1168,10 @@ app.delete(
   }
 );
 
-// Tratamento geral de erros.
+// ============================================================
+// TRATAMENTO GERAL DE ERROS
+// ============================================================
+
 app.use((err, req, res, next) => {
   console.error("Erro na aplicação:", err.message);
 
@@ -1079,14 +1185,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Inicialização.
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+
 async function iniciar() {
   try {
     await prepararBanco();
 
     app.listen(PORT, "0.0.0.0", () => {
       console.log(
-        `Amazon Voices Radio disponível na porta ${PORT}`
+        `Rádio Parque São Pedro disponível na porta ${PORT}`
       );
     });
   } catch (err) {
