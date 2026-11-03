@@ -1,30 +1,504 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#101827">
+    <meta name="theme-color" content="#071b32">
 
     <meta
         name="description"
-        content="Amazon Voices Radio — Many Voices, One Connection. Música, idiomas e aprendizado."
+        content="Rádio Parque São Pedro — Sua companhia, sua música, sua rádio."
     >
 
-    <title>Amazon Voices Radio</title>
+    <title>Rádio Parque São Pedro</title>
 
     <link rel="stylesheet" href="./style.css">
     <script src="./script.js" defer></script>
+
+    <style>
+        :root {
+            --fundo: #071b32;
+            --fundo-claro: #0d2947;
+            --cartao: #102f50;
+            --dourado: #e9bd69;
+            --dourado-claro: #f8d994;
+            --branco: #ffffff;
+            --texto: #d6e1ed;
+            --texto-suave: #91a8bf;
+            --borda: rgba(255,255,255,.10);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--branco);
+            background:
+                radial-gradient(ellipse at 50% -15%, #1d4569 0%, transparent 48%),
+                linear-gradient(180deg, #071b32 0%, #091f38 55%, #061629 100%);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        a {
+            color: var(--dourado-claro);
+        }
+
+        .cabecalho {
+            min-height: 88px;
+            padding: 18px max(6%, calc((100% - 1150px) / 2));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            border-bottom: 1px solid var(--borda);
+            background: rgba(5, 20, 37, .78);
+            backdrop-filter: blur(14px);
+        }
+
+        .marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .marca-icone {
+            width: 49px;
+            height: 49px;
+            display: grid;
+            place-items: center;
+            border-radius: 15px;
+            color: #10243b;
+            background: linear-gradient(145deg, #f8d994, #d6a84e);
+            font-size: 30px;
+            box-shadow: 0 5px 22px rgba(233,189,105,.22);
+        }
+
+        .marca-texto strong {
+            display: block;
+            font-size: 18px;
+            letter-spacing: 1.5px;
+        }
+
+        .marca-texto small {
+            display: block;
+            margin-top: 5px;
+            color: var(--dourado);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .status-radio {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 15px;
+            border: 1px solid rgba(91, 221, 159, .25);
+            border-radius: 30px;
+            color: #a4efc5;
+            background: rgba(43, 157, 105, .10);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .status-ponto {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #55d99a;
+            box-shadow: 0 0 12px #55d99a;
+        }
+
+        .conteudo {
+            width: min(100% - 36px, 1050px);
+            margin: 0 auto;
+        }
+
+        .apresentacao {
+            position: relative;
+            overflow: hidden;
+            padding: 75px 20px 55px;
+            text-align: center;
+        }
+
+        .apresentacao::before,
+        .apresentacao::after {
+            content: "";
+            position: absolute;
+            width: 230px;
+            height: 230px;
+            border: 1px solid rgba(233,189,105,.09);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .apresentacao::before {
+            top: 5px;
+            left: -180px;
+        }
+
+        .apresentacao::after {
+            right: -180px;
+            bottom: -40px;
+        }
+
+        .apresentacao-etiqueta,
+        .secao-etiqueta {
+            color: var(--dourado);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+        }
+
+        .apresentacao h1 {
+            max-width: 800px;
+            margin: 20px auto;
+            font-family: Georgia, serif;
+            font-size: clamp(35px, 6vw, 58px);
+            line-height: 1.12;
+            font-weight: 500;
+        }
+
+        .apresentacao h1 span {
+            color: var(--dourado-claro);
+        }
+
+        .apresentacao > p:last-child {
+            max-width: 570px;
+            margin: 0 auto;
+            color: var(--texto);
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .cartao-radio {
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto 28px;
+            padding: 38px;
+            overflow: hidden;
+            border: 1px solid rgba(233,189,105,.25);
+            border-radius: 25px;
+            background:
+                radial-gradient(circle at 90% 5%, rgba(233,189,105,.15), transparent 35%),
+                linear-gradient(145deg, #153b60, #0b2542);
+            box-shadow: 0 22px 65px rgba(0,0,0,.24);
+            text-align: center;
+        }
+
+        .radio-identificacao {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 17px;
+        }
+
+        .radio-icone {
+            width: 65px;
+            height: 65px;
+            display: grid;
+            place-items: center;
+            border-radius: 20px;
+            color: #10243b;
+            background: linear-gradient(145deg, #f8d994, #d6a84e);
+            font-size: 37px;
+        }
+
+        .radio-etiqueta {
+            margin: 0 0 7px;
+            color: var(--dourado);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .radio-identificacao h2 {
+            margin: 0;
+            font-family: Georgia, serif;
+            font-size: clamp(21px, 4vw, 29px);
+        }
+
+        #descricao-programa {
+            margin: 22px 0 18px;
+            color: var(--texto);
+            line-height: 1.6;
+        }
+
+        .horario-atual {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            color: var(--dourado-claro);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        #botao-play {
+            min-width: 220px;
+            min-height: 59px;
+            padding: 15px 28px;
+            border: 0;
+            border-radius: 50px;
+            color: #172b40;
+            background: linear-gradient(135deg, #f8d994, #d9a84d);
+            box-shadow: 0 8px 25px rgba(233,189,105,.22);
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        #botao-play:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(233,189,105,.35);
+        }
+
+        #icone-play {
+            margin-right: 9px;
+        }
+
+        .status-audio {
+            min-height: 20px;
+            margin: 18px 0 0;
+            color: var(--texto-suave);
+            font-size: 12px;
+        }
+
+        .contador-visitas {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            max-width: 700px;
+            margin: 0 auto 75px;
+            padding: 18px 23px;
+            border: 1px solid var(--borda);
+            border-radius: 14px;
+            background: rgba(255,255,255,.035);
+            color: var(--texto);
+            font-size: 13px;
+        }
+
+        .contador-visitas strong {
+            color: var(--dourado-claro);
+            font-size: 19px;
+        }
+
+        .programacao {
+            margin-bottom: 70px;
+        }
+
+        .programacao-cabecalho {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 27px;
+        }
+
+        .programacao-cabecalho h2 {
+            margin: 9px 0;
+            font-family: Georgia, serif;
+            font-size: 35px;
+            font-weight: 500;
+        }
+
+        .programacao-cabecalho p {
+            max-width: 500px;
+            color: var(--texto-suave);
+            line-height: 1.6;
+        }
+
+        #data-programacao {
+            padding: 10px 14px;
+            border: 1px solid rgba(233,189,105,.25);
+            border-radius: 30px;
+            color: var(--dourado-claro);
+            background: rgba(233,189,105,.07);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .lista-programacao {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .programacao-vazia {
+            grid-column: 1 / -1;
+            padding: 30px;
+            border: 1px dashed var(--borda);
+            border-radius: 15px;
+            color: var(--texto-suave);
+            text-align: center;
+        }
+
+        /* Cartões criados dinamicamente pelo JavaScript */
+        .lista-programacao > * {
+            min-width: 0;
+        }
+
+        .lista-programacao article,
+        .lista-programacao .item-programacao,
+        .lista-programacao .cartao-programacao {
+            padding: 22px;
+            border: 1px solid var(--borda);
+            border-radius: 17px;
+            background: linear-gradient(145deg, #123252, #0c2540);
+            transition: transform .2s, border-color .2s;
+        }
+
+        .lista-programacao article:hover,
+        .lista-programacao .item-programacao:hover,
+        .lista-programacao .cartao-programacao:hover {
+            transform: translateY(-4px);
+            border-color: rgba(233,189,105,.4);
+        }
+
+        .aviso-continuidade {
+            margin-bottom: 75px;
+            padding: 35px;
+            border: 1px solid rgba(233,189,105,.18);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(233,189,105,.13), transparent 45%),
+                #0d2947;
+            text-align: center;
+        }
+
+        .aviso-continuidade h2 {
+            margin-top: 0;
+            color: var(--dourado-claro);
+            font-family: Georgia, serif;
+            font-size: 27px;
+            font-weight: 500;
+        }
+
+        .aviso-continuidade p {
+            max-width: 600px;
+            margin: auto;
+            color: var(--texto);
+            line-height: 1.8;
+        }
+
+        .rodape {
+            padding: 42px 20px 25px;
+            border-top: 1px solid var(--borda);
+            background: rgba(3, 14, 27, .7);
+            text-align: center;
+        }
+
+        .rodape-marca strong {
+            color: var(--dourado-claro);
+            font-size: 15px;
+            letter-spacing: 2px;
+        }
+
+        .rodape-marca p,
+        .rodape-creditos p {
+            color: var(--texto-suave);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .rodape-copyright {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--borda);
+            color: #71869b;
+            font-size: 11px;
+        }
+
+        @media (max-width: 600px) {
+            .cabecalho {
+                min-height: 75px;
+                padding: 13px 17px;
+            }
+
+            .marca-icone {
+                width: 42px;
+                height: 42px;
+                font-size: 25px;
+            }
+
+            .marca-texto strong {
+                font-size: 14px;
+            }
+
+            .marca-texto small {
+                font-size: 8px;
+                letter-spacing: 1px;
+            }
+
+            .status-radio {
+                padding: 8px 10px;
+                font-size: 9px;
+            }
+
+            .apresentacao {
+                padding: 58px 8px 40px;
+            }
+
+            .apresentacao > p:last-child {
+                font-size: 14px;
+            }
+
+            .cartao-radio {
+                padding: 28px 18px;
+                border-radius: 20px;
+            }
+
+            .radio-icone {
+                width: 53px;
+                height: 53px;
+                font-size: 30px;
+            }
+
+            .programacao-cabecalho {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .programacao-cabecalho h2 {
+                font-size: 30px;
+            }
+
+            #data-programacao {
+                white-space: normal;
+            }
+
+            .contador-visitas {
+                margin-bottom: 55px;
+            }
+
+            .aviso-continuidade {
+                padding: 27px 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
+
     <header class="cabecalho">
-        <a href="/" class="marca" aria-label="Amazon Voices Radio - início">
+        <a href="/" class="marca" aria-label="Rádio Parque São Pedro - início">
             <span class="marca-icone" aria-hidden="true">♫</span>
 
             <span class="marca-texto">
-                <strong>AMAZON VOICES</strong>
-                <small>RADIO · MANY VOICES, ONE CONNECTION</small>
+                <strong>PARQUE SÃO PEDRO</strong>
+                <small>RÁDIO · MÚSICA E CONEXÃO</small>
             </span>
         </a>
 
@@ -35,18 +509,26 @@
     </header>
 
     <main class="conteudo">
-        <section class="apresentacao">
-            <p class="apresentacao-etiqueta">MÚSICA · IDIOMAS · CONEXÃO</p>
 
-            <h1>Many Voices, One Connection.</h1>
+        <section class="apresentacao">
+            <p class="apresentacao-etiqueta">
+                <span>✦</span> UMA RÁDIO PARA VOCÊ <span>✦</span>
+            </p>
+
+            <h1>
+                Sua companhia,<br>
+                <span>sua música, sua rádio.</span>
+            </h1>
 
             <p>
-                Uma rádio para conectar pessoas por meio da música,
-                da fé e do aprendizado de novos idiomas.
+                Bem-vindo à Rádio Parque São Pedro.
+                Sintonize, aproveite nossa programação
+                e fique sempre conectado.
             </p>
         </section>
 
         <section class="cartao-radio" aria-label="Player da rádio">
+
             <div class="radio-identificacao">
                 <span class="radio-icone" aria-hidden="true">♫</span>
 
@@ -54,13 +536,13 @@
                     <p class="radio-etiqueta">VOCÊ ESTÁ OUVINDO</p>
 
                     <h2 id="programa-atual">
-                        Amazon Voices Radio
+                        Rádio Parque São Pedro
                     </h2>
                 </div>
             </div>
 
             <p id="descricao-programa">
-                Muitas vozes, uma conexão.
+                Sua companhia em todos os momentos.
             </p>
 
             <div class="horario-atual">
@@ -88,28 +570,29 @@
                 role="status"
                 aria-live="polite"
             >
-                Preparando a programação...
+                Prepare-se para ouvir nossa programação.
             </p>
+
         </section>
 
-        <!-- Contador público de visitas -->
         <section class="contador-visitas" aria-live="polite">
-            <span>Visitas à rádio</span>
+            <span>✦ Pessoas que já passaram pela rádio</span>
             <strong id="total-visitas">Carregando...</strong>
         </section>
 
         <section class="programacao" aria-labelledby="titulo-programacao">
+
             <div class="programacao-cabecalho">
                 <div>
-                    <p class="secao-etiqueta">ACOMPANHE</p>
+                    <p class="secao-etiqueta">FIQUE POR DENTRO</p>
 
                     <h2 id="titulo-programacao">
-                        Programação
+                        Nossa programação
                     </h2>
 
                     <p>
                         Confira os horários, os programas e os materiais
-                        de apoio disponíveis.
+                        disponíveis para acompanhar nossa transmissão.
                     </p>
                 </div>
 
@@ -123,42 +606,37 @@
                     Carregando a programação...
                 </p>
             </div>
+
         </section>
 
         <section class="aviso-continuidade">
-            <h2>Continue conectado</h2>
+            <h2>Continue conectado!</h2>
 
             <p>
-                Acompanhe nossa programação e aproveite os materiais
-                de apoio disponibilizados em cada aula.
+                A Rádio Parque São Pedro está aqui para acompanhar
+                você. Aproveite nossa programação e volte sempre!
             </p>
         </section>
+
     </main>
 
     <footer class="rodape">
+
         <div class="rodape-marca">
-            <strong>AMAZON VOICES RADIO</strong>
-            <p>Many Voices, One Connection.</p>
+            <strong>RÁDIO PARQUE SÃO PEDRO</strong>
+            <p>Sua companhia, sua música, sua rádio.</p>
         </div>
 
         <div class="rodape-creditos">
-            <p>
-                Desenvolvedor:
-                <strong>Edimar Matos</strong>
-            </p>
-
-            <p>
-                Contato, sugestões e melhorias:
-                <a href="mailto:amvoices.matos@gmail.com">
-                    amvoices.matos@gmail.com
-                </a>
-            </p>
+            <p>Obrigado por fazer parte da nossa audiência!</p>
         </div>
 
         <p class="rodape-copyright">
-            © <span id="ano-atual"></span> Amazon Voices Radio.
+            © <span id="ano-atual"></span> Rádio Parque São Pedro.
             Todos os direitos reservados.
         </p>
+
     </footer>
+
 </body>
 </html>
