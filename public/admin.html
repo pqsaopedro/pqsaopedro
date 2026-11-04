@@ -596,6 +596,61 @@
 
     </section>
 
+
+    <section class="cartao" id="cartaoXCast">
+      <h2>Controle do streaming — XCast</h2>
+      <p class="ajuda">Gerencie o streaming, o AutoDJ e as playlists da plataforma XCast. Esta área usa a chave armazenada no servidor; ela não aparece nesta página.</p>
+      <div class="linha" style="flex-wrap:wrap;gap:10px">
+        <button type="button" class="secundario" id="xcastAtualizar">Atualizar dados</button>
+        <button type="button" id="xcastLigarStreaming">Ligar streaming</button>
+        <button type="button" class="secundario" id="xcastDesligarStreaming">Desligar streaming</button>
+        <button type="button" id="xcastLigarAutoDj">Ligar AutoDJ</button>
+        <button type="button" class="secundario" id="xcastDesligarAutoDj">Desligar AutoDJ</button>
+        <button type="button" class="secundario" id="xcastPular">Pular música</button>
+      </div>
+      <p id="xcastStatusConfig" class="mensagem" role="status">Verificando integração...</p>
+      <div class="estatisticas-visitas">
+        <div class="estatistica-visita"><span>Status do streaming</span><strong id="xcastStatus">—</strong></div>
+        <div class="estatistica-visita"><span>Ouvintes</span><strong id="xcastOuvintes">—</strong></div>
+        <div class="estatistica-visita"><span>Tocando agora</span><strong id="xcastAgora">—</strong></div>
+      </div>
+      <p id="xcastMensagem" class="mensagem" role="status"></p>
+
+      <h3>Playlists XCast</h3>
+      <button type="button" class="secundario" id="xcastCarregarPlaylists">Carregar playlists</button>
+      <div class="linha" style="gap:10px;align-items:end;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px">
+          <label for="xcastPlaylist">Playlist</label>
+          <select id="xcastPlaylist"><option value="">Carregue as playlists...</option></select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <label for="xcastNovoNome">Nome da nova playlist</label>
+          <input id="xcastNovoNome" maxlength="150" placeholder="Ex.: Músicas da manhã">
+        </div>
+        <button type="button" id="xcastCriarPlaylist">Criar playlist</button>
+      </div>
+      <div class="linha" style="gap:10px;flex-wrap:wrap">
+        <button type="button" class="secundario" id="xcastRenomear">Renomear selecionada</button>
+        <button type="button" class="secundario" id="xcastExcluir">Excluir selecionada</button>
+        <button type="button" class="secundario" id="xcastTrocar">Tocar playlist selecionada</button>
+        <button type="button" class="secundario" id="xcastRecarregar">Recarregar playlist no AutoDJ</button>
+      </div>
+      <label for="xcastMusicas">Adicionar músicas (caminhos/nomes, um por linha)</label>
+      <textarea id="xcastMusicas" rows="4" placeholder="Ex.:\nPasta/Arquivo 01.mp3\nPasta/Arquivo 02.mp3"></textarea>
+      <div class="linha" style="gap:10px;flex-wrap:wrap">
+        <button type="button" id="xcastAdicionar">Adicionar músicas</button>
+        <button type="button" class="secundario" id="xcastMisturar">Misturar ordem</button>
+      </div>
+      <label for="xcastPosicoes">Remover posições (ex.: 2, 4, 5)</label>
+      <div class="linha" style="gap:10px;align-items:end">
+        <input id="xcastPosicoes" placeholder="2, 4, 5">
+        <button type="button" class="secundario" id="xcastRemover">Remover posições</button>
+      </div>
+      <h3>Resposta da XCast</h3>
+      <pre id="xcastResultado" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#111827;padding:12px;border-radius:10px;max-height:280px;overflow:auto">Nenhuma consulta realizada.</pre>
+      <p class="ajuda">A API permite consultar os agendamentos, mas não editar a grade de horários. O envio de arquivos de áudio continua sendo feito pelo FTP/painel próprio da XCast.</p>
+    </section>
+
     <button type="button" id="botaoSair" class="secundario">
       Sair do painel
     </button>
@@ -620,7 +675,8 @@ const API = {
   logout: "/api/admin/logout",
   cadastrarPrograma: "/api/admin/programas",
   cadastrarFaixa: "/api/admin/faixas-horarias",
-  visitas: "/api/admin/visitas"
+  visitas: "/api/admin/visitas",
+  xcast: "/api/admin/xcast"
 };
 
 let programas = [];
@@ -1595,6 +1651,166 @@ $("atualizarListas").addEventListener("click", async () => {
 $("admin-atualizar-visitas").addEventListener("click", () => {
   carregarEstatisticasVisitas();
 });
+
+
+/* INTEGRAÇÃO XCAST */
+let xcastPlaylists = [];
+
+async function xcastRequisicao(caminho, opcoes = {}) {
+  return requisicao(`${API.xcast}${caminho}`, opcoes);
+}
+
+function xcastMostrarResultado(dados) {
+  $("xcastResultado").textContent = JSON.stringify(dados, null, 2);
+}
+
+function xcastMensagem(texto, erro = false) {
+  mensagem("xcastMensagem", texto, erro);
+}
+
+function xcastPlaylistSelecionada() {
+  const id = $("xcastPlaylist").value;
+  if (!id) throw new Error("Selecione uma playlist primeiro.");
+  return id;
+}
+
+async function xcastAcao(nome, confirmacao) {
+  if (confirmacao && !confirm(confirmacao)) return;
+  try {
+    const dados = await xcastRequisicao(`/acao/${nome}`, { method: "POST" });
+    xcastMostrarResultado(dados);
+    xcastMensagem("Comando enviado à XCast.");
+    if (["ligar-streaming", "desligar-streaming", "ligar-autodj", "desligar-autodj", "pular-musica"].includes(nome)) {
+      await xcastAtualizarDados();
+    }
+  } catch (erro) { xcastMensagem(erro.message, true); }
+}
+
+async function xcastAtualizarDados() {
+  try {
+    const [config, status, agora] = await Promise.all([
+      xcastRequisicao("/config"),
+      xcastRequisicao("/status"),
+      xcastRequisicao("/tocando-agora")
+    ]);
+    $("xcastStatusConfig").textContent = config.configurado
+      ? "Integração XCast configurada no servidor."
+      : "Configure as variáveis XCAST_PUBLIC_KEY e XCAST_API_KEY no Render.";
+    $("xcastStatus").textContent = JSON.stringify(status).slice(0, 100);
+    const ouvintes = status.ouvintes ?? status.listeners ?? status.online ?? status.total_ouvintes;
+    $("xcastOuvintes").textContent = ouvintes === undefined ? "Consulte o resultado" : String(ouvintes);
+    const faixa = agora.musica ?? agora.track ?? agora.now_playing ?? agora.tocando ?? agora;
+    $("xcastAgora").textContent = typeof faixa === "string" ? faixa : JSON.stringify(faixa).slice(0, 140);
+    xcastMostrarResultado({ status, tocandoAgora: agora });
+    xcastMensagem("Dados atualizados.");
+  } catch (erro) {
+    $("xcastStatusConfig").textContent = "Não foi possível consultar a XCast.";
+    xcastMensagem(erro.message, true);
+  }
+}
+
+async function xcastCarregarPlaylists() {
+  try {
+    const dados = await xcastRequisicao("/playlists");
+    xcastPlaylists = Array.isArray(dados) ? dados : (dados.playlists || dados.data || dados.items || []);
+    const seletor = $("xcastPlaylist");
+    seletor.replaceChildren();
+    for (const playlist of xcastPlaylists) {
+      const id = playlist.id ?? playlist.playlist_id ?? playlist.codigo;
+      const nome = playlist.nome ?? playlist.name ?? playlist.titulo ?? `Playlist ${id}`;
+      if (id === undefined || id === null) continue;
+      const option = document.createElement("option");
+      option.value = String(id);
+      option.textContent = `${nome} (ID ${id})`;
+      seletor.appendChild(option);
+    }
+    if (!seletor.options.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "Nenhuma playlist retornada";
+      seletor.appendChild(option);
+    }
+    xcastMostrarResultado(dados);
+    xcastMensagem(`${seletor.options.length && seletor.value ? seletor.options.length : 0} playlist(s) carregada(s).`);
+  } catch (erro) { xcastMensagem(erro.message, true); }
+}
+
+$("xcastAtualizar").addEventListener("click", xcastAtualizarDados);
+$("xcastCarregarPlaylists").addEventListener("click", xcastCarregarPlaylists);
+$("xcastLigarStreaming").addEventListener("click", () => xcastAcao("ligar-streaming"));
+$("xcastDesligarStreaming").addEventListener("click", () => xcastAcao("desligar-streaming", "Desligar o streaming? Isso também pode interromper o AutoDJ."));
+$("xcastLigarAutoDj").addEventListener("click", () => xcastAcao("ligar-autodj"));
+$("xcastDesligarAutoDj").addEventListener("click", () => xcastAcao("desligar-autodj"));
+$("xcastPular").addEventListener("click", () => xcastAcao("pular-musica", "Pular a música que está tocando agora?"));
+$("xcastRecarregar").addEventListener("click", () => xcastAcao("recarregar-playlist"));
+
+$("xcastCriarPlaylist").addEventListener("click", async () => {
+  try {
+    const nome = $("xcastNovoNome").value.trim();
+    const dados = await xcastRequisicao("/playlists/criar", { method: "POST", body: JSON.stringify({ nome }) });
+    xcastMostrarResultado(dados); $("xcastNovoNome").value = "";
+    await xcastCarregarPlaylists(); xcastMensagem("Solicitação de criação enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastRenomear").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    const atual = xcastPlaylists.find(p => String(p.id ?? p.playlist_id ?? p.codigo) === id);
+    const nome = prompt("Novo nome da playlist:", atual?.nome ?? atual?.name ?? "");
+    if (nome === null) return;
+    const dados = await xcastRequisicao(`/playlists/${encodeURIComponent(id)}/renomear`, { method: "POST", body: JSON.stringify({ nome }) });
+    xcastMostrarResultado(dados); await xcastCarregarPlaylists(); xcastMensagem("Solicitação de renomeação enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastExcluir").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    if (!confirm("Excluir a playlist selecionada? Se estiver em uso ou agendada, a XCast poderá impedir a exclusão.")) return;
+    const dados = await xcastRequisicao(`/playlists/${encodeURIComponent(id)}`, { method: "DELETE" });
+    xcastMostrarResultado(dados); await xcastCarregarPlaylists(); xcastMensagem("Solicitação de exclusão enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastTrocar").addEventListener("click", async () => {
+  try {
+    const playlistId = xcastPlaylistSelecionada();
+    if (!confirm("Trocar a playlist ativa do AutoDJ?")) return;
+    const dados = await xcastRequisicao("/acao/trocar-playlist", { method: "POST", body: JSON.stringify({ playlistId }) });
+    xcastMostrarResultado(dados); xcastMensagem("Comando enviado à XCast.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastAdicionar").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    const musicas = $("xcastMusicas").value.split(/\r?\n/).map(x => x.trim()).filter(Boolean).join(",");
+    if (!musicas) throw new Error("Informe pelo menos um caminho de áudio.");
+    const dados = await xcastRequisicao(`/playlists/${encodeURIComponent(id)}/adicionar`, { method: "POST", body: JSON.stringify({ musicas, posicao: "fim", ignorar_inexistentes: true }) });
+    xcastMostrarResultado(dados); xcastMensagem("Solicitação para adicionar músicas enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastRemover").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    const posicoes = $("xcastPosicoes").value.trim();
+    if (!confirm(`Remover as posições ${posicoes} da playlist?`)) return;
+    const dados = await xcastRequisicao(`/playlists/${encodeURIComponent(id)}/remover`, { method: "POST", body: JSON.stringify({ posicoes }) });
+    xcastMostrarResultado(dados); xcastMensagem("Solicitação de remoção enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
+$("xcastMisturar").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    if (!confirm("Misturar a ordem das músicas? Itens fixos podem permanecer na posição original.")) return;
+    const dados = await xcastRequisicao(`/playlists/${encodeURIComponent(id)}/ordenar`, { method: "POST", body: JSON.stringify({ misturar: true }) });
+    xcastMostrarResultado(dados); xcastMensagem("Solicitação para misturar enviada.");
+  } catch (erro) { xcastMensagem(erro.message, true); }
+});
+
 
 /* INICIALIZAÇÃO */
 
