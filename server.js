@@ -4,6 +4,7 @@ const session = require("express-session");
 const path = require("path");
 const crypto = require("crypto");
 const { Pool } = require("pg");
+const criarRotasXCast = require("./xcast");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -56,6 +57,8 @@ function exigirAdmin(req, res, next) {
     erro: "Acesso administrativo necessário."
   });
 }
+
+app.use("/api/admin/xcast", criarRotasXCast({ exigirAdmin }));
 
 function texto(valor, limite = 200) {
   return (
