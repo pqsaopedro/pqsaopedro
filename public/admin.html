@@ -70,6 +70,19 @@ a{color:#8ec8ff;overflow-wrap:anywhere}
 .xcast-indicador strong{display:block;font-size:23px;margin-top:5px;overflow-wrap:anywhere}
 .xcast-secao{margin-top:22px;padding-top:12px;border-top:1px solid #40516b}
 
+/* NOVO SELETOR DO ACERVO XCAST */
+.xcast-acervo{margin:18px 0;padding:16px;background:#101c2e;border:1px solid #40516b;border-radius:10px}
+.xcast-acervo-controles{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.xcast-acervo-controles>div{flex:1;min-width:180px}
+.xcast-acervo-lista{display:grid;gap:8px;margin:14px 0;max-height:420px;overflow-y:auto}
+.xcast-acervo-item{display:flex;align-items:flex-start;gap:10px;padding:11px;background:#172338;border:1px solid #40516b;border-radius:8px}
+.xcast-acervo-item input[type="checkbox"]{width:19px;height:19px;flex-shrink:0;margin:3px 0 0;accent-color:#3478f6}
+.xcast-acervo-item label{margin:0;flex:1;min-width:0;font-weight:normal;cursor:pointer;overflow-wrap:anywhere}
+.xcast-acervo-item small{display:block;margin-top:3px;color:#9cabc0}
+.xcast-acervo-vazio{padding:14px;text-align:center;color:#b7c5d8;background:#172338;border-radius:8px}
+.xcast-acervo-contador{color:#8ec8ff;font-weight:bold;margin:10px 0}
+.xcast-acervo-mensagem{font-size:13px;color:#b7c5d8;margin-top:8px;overflow-wrap:anywhere}
+
 @media(max-width:600px){
 .linha{grid-template-columns:1fr;gap:0}
 .cartao{padding:15px}
@@ -82,6 +95,8 @@ button.botao-remover{padding:7px 8px}
 .xcast-musica{align-items:flex-start;gap:12px}
 .xcast-musica img{width:90px;height:90px}
 .xcast-musica-info h3{font-size:17px}
+.xcast-acervo{padding:12px}
+.xcast-acervo-controles>div{min-width:100%}
 }
 </style>
 </head>
@@ -200,8 +215,6 @@ button.botao-remover{padding:7px 8px}
 <p id="mensagemListas" class="mensagem" role="status"></p>
 </section>
 
-<!-- PAINEL XCAST ATUALIZADO -->
-
 <section class="cartao" id="cartaoXCast">
 <h2>Controle do streaming — XCast</h2>
 <p class="ajuda">Gerencie o streaming, o AutoDJ, as playlists e acompanhe as informações da transmissão. A chave de acesso fica armazenada no servidor.</p>
@@ -220,11 +233,7 @@ button.botao-remover{padding:7px 8px}
 <h3>Transmitindo agora</h3>
 
 <div class="xcast-musica">
-<img
-id="xcastCapa"
-src="https://placehold.co/300x300/172338/8ec8ff?text=Amazon+Voices"
-alt="Capa da música atual"
->
+<img id="xcastCapa" src="https://placehold.co/300x300/172338/8ec8ff?text=Amazon+Voices" alt="Capa da música atual">
 <div class="xcast-musica-info">
 <span class="xcast-etiqueta">TOCANDO AGORA</span>
 <h3 id="xcastMusica">Aguardando informações...</h3>
@@ -292,11 +301,45 @@ alt="Capa da música atual"
 <button type="button" class="secundario" id="xcastRecarregar">Recarregar playlist no AutoDJ</button>
 </div>
 
-<label for="xcastMusicas">Adicionar músicas (caminhos/nomes, um por linha)</label>
+<!-- NOVO: SELETOR DE MÚSICAS DO ACERVO XCAST -->
+<div class="xcast-acervo">
+<h3>Adicionar músicas do acervo XCast</h3>
+<p class="ajuda">Escolha uma pasta, pesquise as músicas e marque uma ou várias faixas para adicioná-las à playlist selecionada.</p>
+
+<div class="xcast-acervo-controles">
+<div>
+<label for="xcastAcervoPasta">Pasta do acervo</label>
+<select id="xcastAcervoPasta">
+<option value="">Carregando pastas...</option>
+</select>
+</div>
+
+<div>
+<label for="xcastAcervoBusca">Pesquisar música</label>
+<input id="xcastAcervoBusca" type="search" placeholder="Digite parte do nome da música">
+</div>
+</div>
+
+<div class="xcast-acervo-controles">
+<button type="button" class="secundario" id="xcastAcervoAtualizar">Atualizar acervo</button>
+<button type="button" class="secundario" id="xcastAcervoSelecionarTodos">Selecionar músicas exibidas</button>
+<button type="button" class="secundario" id="xcastAcervoLimparSelecao">Limpar seleção</button>
+</div>
+
+<p id="xcastAcervoContador" class="xcast-acervo-contador">0 músicas selecionadas</p>
+<div id="xcastAcervoLista" class="xcast-acervo-lista" aria-live="polite">
+<div class="xcast-acervo-vazio">O acervo será carregado após entrar no painel.</div>
+</div>
+
+<button type="button" id="xcastAcervoAdicionar">Adicionar selecionadas à playlist</button>
+<p id="xcastAcervoMensagem" class="xcast-acervo-mensagem" role="status"></p>
+</div>
+
+<label for="xcastMusicas">Adicionar músicas manualmente (caminhos/nomes, um por linha)</label>
 <textarea id="xcastMusicas" rows="4" placeholder="Pasta/Arquivo 01.mp3&#10;Pasta/Arquivo 02.mp3"></textarea>
 
 <div class="linha" style="gap:10px;flex-wrap:wrap">
-<button type="button" id="xcastAdicionar">Adicionar músicas</button>
+<button type="button" id="xcastAdicionar">Adicionar músicas manualmente</button>
 <button type="button" class="secundario" id="xcastMisturar">Misturar ordem</button>
 </div>
 
@@ -470,9 +513,9 @@ async function mostrarPainel() {
   await carregarTudo();
   await carregarEstatisticasVisitas();
 
-  // Atualiza o painel XCast quando o administrador entra.
   xcastAtualizarDados();
   xcastCarregarPlaylists();
+  xcastAcervoCarregarPastas();
 }
 
 $("formLogin").addEventListener("submit", async (evento) => {
@@ -974,7 +1017,6 @@ $("atualizarListas").addEventListener("click", async () => {
 
 $("admin-atualizar-visitas").addEventListener("click", carregarEstatisticasVisitas);
 
-
 /* ==========================================
    INTEGRAÇÃO XCAST
 ========================================== */
@@ -1085,31 +1127,23 @@ async function xcastAtualizarDados() {
       ? "Integração XCast configurada no servidor."
       : "Configure XCAST_PUBLIC_KEY e XCAST_API_KEY no Render.";
 
-    /* STATUS DA TRANSMISSÃO */
-
     $("xcastStatus").textContent = status.status || "Indisponível";
-
     $("xcastOuvintes").textContent = status.ouvintes_conectados !== undefined
       ? xcastFormatarNumero(status.ouvintes_conectados)
       : "—";
-
     $("xcastBitrate").textContent = status.bitrate_stream
       ? `${status.bitrate_stream} kbps`
       : "—";
-
     $("xcastFonte").textContent = status.fonte_conectada === true
       ? "Conectada"
       : status.fonte_conectada === false
         ? "Desconectada"
         : "—";
-
     $("xcastAutoDj").textContent = status.autodj_ligado === true
       ? "Ligado"
       : status.autodj_ligado === false
         ? "Desligado"
         : "—";
-
-    /* MÚSICA ATUAL */
 
     const artista = agora.artista || "";
     const musica = agora.musica || agora.musica_atual || "";
@@ -1118,28 +1152,20 @@ async function xcastAtualizarDados() {
     $("xcastArtista").textContent = artista || "Artista não informado";
     $("xcastMusica").textContent = musica || "Nenhuma música identificada";
     $("xcastAlbum").textContent = album ? `Álbum: ${album}` : "";
-
     $("xcastAgora").textContent = agora.ao_vivo
       ? "Transmissão ao vivo"
       : "Reprodução pelo AutoDJ";
 
-    /* CAPA */
-
     const capa = agora.capa_musica;
 
-    if (capa && typeof capa === "string") {
-      $("xcastCapa").src = capa;
-    } else {
-      $("xcastCapa").src =
-        "https://placehold.co/300x300/172338/8ec8ff?text=Amazon+Voices";
-    }
+    $("xcastCapa").src = capa && typeof capa === "string"
+      ? capa
+      : "https://placehold.co/300x300/172338/8ec8ff?text=Amazon+Voices";
 
     $("xcastCapa").onerror = () => {
       $("xcastCapa").src =
         "https://placehold.co/300x300/172338/8ec8ff?text=Amazon+Voices";
     };
-
-    /* RESUMO DOS ÚLTIMOS DIAS */
 
     $("xcastUnicos").textContent = xcastFormatarNumero(resumo.ouvintes_unicos);
     $("xcastSessoes").textContent = xcastFormatarNumero(resumo.sessoes);
@@ -1150,17 +1176,11 @@ async function xcastAtualizarDados() {
       ? xcastFormatarNumero(pico.ouvintes)
       : "—";
 
-    /* LISTAS */
-
     xcastMostrarLista("xcastCidades", resumo.top_cidades);
     xcastMostrarLista("xcastPaises", resumo.top_paises);
     xcastMostrarLista("xcastPlayers", resumo.players);
 
-    xcastMostrarResultado({
-      status,
-      tocandoAgora: agora,
-      resumo
-    });
+    xcastMostrarResultado({status, tocandoAgora: agora, resumo});
 
     if (erros.length) {
       xcastMensagem(
@@ -1188,6 +1208,7 @@ async function xcastCarregarPlaylists() {
       : (dados.playlists || dados.data || dados.items || []);
 
     const seletor = $("xcastPlaylist");
+    const valorAnterior = seletor.value;
     seletor.replaceChildren();
 
     for (const playlist of xcastPlaylists) {
@@ -1207,6 +1228,8 @@ async function xcastCarregarPlaylists() {
       option.value = "";
       option.textContent = "Nenhuma playlist retornada";
       seletor.appendChild(option);
+    } else if ([...seletor.options].some((option) => option.value === valorAnterior)) {
+      seletor.value = valorAnterior;
     }
 
     xcastMostrarResultado(dados);
@@ -1216,6 +1239,248 @@ async function xcastCarregarPlaylists() {
     xcastMensagem(erro.message, true);
   }
 }
+
+/* NOVO: ACERVO DE MÚSICAS XCAST */
+
+let xcastAcervoPastas = [];
+let xcastAcervoMusicas = [];
+let xcastAcervoSelecionadas = new Set();
+
+function xcastAcervoMensagem(texto, erro = false) {
+  const elemento = $("xcastAcervoMensagem");
+  elemento.textContent = texto;
+  elemento.style.color = erro ? "#ffaaaF" : "#a6efbd";
+}
+
+function xcastAcervoAtualizarContador() {
+  const total = xcastAcervoSelecionadas.size;
+  $("xcastAcervoContador").textContent =
+    `${total} ${total === 1 ? "música selecionada" : "músicas selecionadas"}`;
+}
+
+function xcastAcervoRenderizar() {
+  const recipiente = $("xcastAcervoLista");
+  const busca = $("xcastAcervoBusca").value.trim().toLocaleLowerCase("pt-BR");
+
+  const filtradas = xcastAcervoMusicas.filter((musica) =>
+    String(musica.nome || "").toLocaleLowerCase("pt-BR").includes(busca)
+  );
+
+  recipiente.replaceChildren();
+
+  if (!filtradas.length) {
+    const vazio = document.createElement("div");
+    vazio.className = "xcast-acervo-vazio";
+    vazio.textContent = busca
+      ? "Nenhuma música corresponde à pesquisa."
+      : "Esta pasta não contém músicas.";
+    recipiente.appendChild(vazio);
+    xcastAcervoAtualizarContador();
+    return;
+  }
+
+  for (const musica of filtradas) {
+    const caminho = String(musica.path || musica.nome || "");
+    const item = document.createElement("div");
+    item.className = "xcast-acervo-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = xcastAcervoSelecionadas.has(caminho);
+    checkbox.dataset.acervoCaminho = caminho;
+    checkbox.id = `acervo-${Array.from(caminho).map((c) => c.codePointAt(0).toString(16)).join("-")}`;
+
+    const label = document.createElement("label");
+    label.htmlFor = checkbox.id;
+    label.textContent = musica.nome || caminho;
+
+    const detalhe = document.createElement("small");
+    detalhe.textContent = musica.duracao || "";
+
+    label.appendChild(detalhe);
+    item.append(checkbox, label);
+    recipiente.appendChild(item);
+  }
+
+  xcastAcervoAtualizarContador();
+}
+
+async function xcastAcervoCarregarPastas() {
+  const seletor = $("xcastAcervoPasta");
+  seletor.disabled = true;
+  seletor.innerHTML = '<option value="">Carregando pastas...</option>';
+  $("xcastAcervoLista").innerHTML =
+    '<div class="xcast-acervo-vazio">Carregando acervo...</div>';
+
+  try {
+    const dados = await xcastRequisicao("/acervo");
+
+    if (dados.sucesso === false) {
+      throw new Error(dados.erro || "Não foi possível carregar as pastas.");
+    }
+
+    const pastas = Array.isArray(dados.pastas) ? dados.pastas : [];
+    xcastAcervoPastas = pastas.filter((pasta) =>
+      pasta.nome && pasta.nome !== "/" && Number(pasta.total || 0) > 0
+    );
+
+    seletor.replaceChildren();
+
+    if (!xcastAcervoPastas.length) {
+      seletor.innerHTML = '<option value="">Nenhuma pasta com músicas encontrada</option>';
+      xcastAcervoMusicas = [];
+      xcastAcervoRenderizar();
+      xcastAcervoMensagem("O acervo não retornou pastas com músicas.", true);
+      return;
+    }
+
+    for (const pasta of xcastAcervoPastas) {
+      const opcao = document.createElement("option");
+      opcao.value = pasta.nome;
+      opcao.textContent = `${pasta.nome} (${pasta.total})`;
+      seletor.appendChild(opcao);
+    }
+
+    seletor.disabled = false;
+    await xcastAcervoCarregarMusicas();
+    xcastAcervoMensagem(`${xcastAcervoPastas.length} pasta(s) carregada(s).`);
+
+  } catch (erro) {
+    seletor.disabled = false;
+    seletor.innerHTML = '<option value="">Erro ao carregar pastas</option>';
+    $("xcastAcervoLista").innerHTML =
+      '<div class="xcast-acervo-vazio">Não foi possível consultar o acervo.</div>';
+    xcastAcervoMensagem(erro.message, true);
+  }
+}
+
+async function xcastAcervoCarregarMusicas() {
+  const pasta = $("xcastAcervoPasta").value;
+
+  if (!pasta) {
+    xcastAcervoMusicas = [];
+    xcastAcervoRenderizar();
+    return;
+  }
+
+  $("xcastAcervoLista").innerHTML =
+    '<div class="xcast-acervo-vazio">Carregando músicas da pasta...</div>';
+
+  try {
+    const dados = await xcastRequisicao(`/acervo?pasta=${encodeURIComponent(pasta)}`);
+
+    if (dados.sucesso === false) {
+      throw new Error(dados.erro || "Não foi possível carregar as músicas.");
+    }
+
+    xcastAcervoMusicas = Array.isArray(dados.musicas) ? dados.musicas : [];
+    xcastAcervoRenderizar();
+
+    xcastAcervoMensagem(
+      `${xcastAcervoMusicas.length} música(s) encontrada(s) em "${pasta}".`
+    );
+
+  } catch (erro) {
+    xcastAcervoMusicas = [];
+    xcastAcervoRenderizar();
+    xcastAcervoMensagem(erro.message, true);
+  }
+}
+
+$("xcastAcervoPasta").addEventListener("change", () => {
+  xcastAcervoCarregarMusicas();
+});
+
+$("xcastAcervoBusca").addEventListener("input", () => {
+  xcastAcervoRenderizar();
+});
+
+$("xcastAcervoLista").addEventListener("change", (evento) => {
+  const checkbox = evento.target.closest("input[data-acervo-caminho]");
+  if (!checkbox) return;
+
+  const caminho = checkbox.dataset.acervoCaminho;
+
+  if (checkbox.checked) {
+    xcastAcervoSelecionadas.add(caminho);
+  } else {
+    xcastAcervoSelecionadas.delete(caminho);
+  }
+
+  xcastAcervoAtualizarContador();
+});
+
+$("xcastAcervoSelecionarTodos").addEventListener("click", () => {
+  const busca = $("xcastAcervoBusca").value.trim().toLocaleLowerCase("pt-BR");
+
+  const visiveis = xcastAcervoMusicas.filter((musica) =>
+    String(musica.nome || "").toLocaleLowerCase("pt-BR").includes(busca)
+  );
+
+  for (const musica of visiveis) {
+    xcastAcervoSelecionadas.add(String(musica.path || musica.nome || ""));
+  }
+
+  xcastAcervoRenderizar();
+  xcastAcervoMensagem(`${visiveis.length} música(s) exibida(s) selecionada(s).`);
+});
+
+$("xcastAcervoLimparSelecao").addEventListener("click", () => {
+  xcastAcervoSelecionadas.clear();
+  xcastAcervoRenderizar();
+  xcastAcervoMensagem("Seleção limpa.");
+});
+
+$("xcastAcervoAtualizar").addEventListener("click", () => {
+  xcastAcervoCarregarPastas();
+});
+
+$("xcastAcervoAdicionar").addEventListener("click", async () => {
+  try {
+    const id = xcastPlaylistSelecionada();
+    const musicas = [...xcastAcervoSelecionadas];
+
+    if (!musicas.length) {
+      throw new Error("Marque pelo menos uma música do acervo.");
+    }
+
+    if (!confirm(`Adicionar ${musicas.length} música(s) à playlist selecionada?`)) {
+      return;
+    }
+
+    const botao = $("xcastAcervoAdicionar");
+    botao.disabled = true;
+    botao.textContent = "Adicionando músicas...";
+
+    try {
+      const dados = await xcastRequisicao(
+        `/playlists/${encodeURIComponent(id)}/adicionar`,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            musicas: musicas.join(","),
+            posicao: "fim",
+            ignorar_inexistentes: true
+          })
+        }
+      );
+
+      xcastMostrarResultado(dados);
+      xcastAcervoSelecionadas.clear();
+      xcastAcervoRenderizar();
+      xcastAcervoMensagem(
+        `${musicas.length} música(s) enviada(s) para a playlist. O AutoDJ não foi recarregado.`
+      );
+
+    } finally {
+      botao.disabled = false;
+      botao.textContent = "Adicionar selecionadas à playlist";
+    }
+
+  } catch (erro) {
+    xcastAcervoMensagem(erro.message, true);
+  }
+});
 
 /* BOTÕES XCAST */
 
@@ -1348,7 +1613,7 @@ $("xcastTrocar").addEventListener("click", async () => {
   }
 });
 
-/* ADICIONAR MÚSICAS */
+/* ADICIONAR MÚSICAS MANUALMENTE */
 
 $("xcastAdicionar").addEventListener("click", async () => {
   try {
